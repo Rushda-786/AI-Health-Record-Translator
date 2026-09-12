@@ -1,0 +1,33 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <title>Append Prepend</title> 
+ 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> 
+ 
+    <script> 
+        $(document).ready(function() { 
+ 
+            $("#append").click(function() { 
+                $("#list").append("<li>New Student</li>"); 
+            }); 
+ 
+            $("#prepend").click(function() { 
+                $("#list").prepend("<li>First Student</li>"); 
+            }); 
+ 
+        }); 
+    </script> 
+</head> 
+ 
+<body> 
+ 
+    <ul id="list"> 
+        <li>Student 1</li> 
+        <li>Student 2</li> 
+    </ul> 
+ 
+    <button id="append">Append</button> 
+    <button id="prepend">Prepend</button>
+</body>
+</html>
