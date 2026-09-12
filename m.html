@@ -1,0 +1,36 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <title>Hide Show Toggle</title> 
+ 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> 
+ 
+    <script> 
+        $(document).ready(function() { 
+ 
+            $("#hide").click(function() { 
+                $("#text").hide(); 
+            }); 
+ 
+            $("#show").click(function() { 
+                $("#text").show(); 
+            }); 
+ 
+            $("#toggle").click(function() { 
+                $("#text").toggle(); 
+            }); 
+ 
+        }); 
+    </script> 
+</head> 
+ 
+<body> 
+ 
+    <p id="text">This is a jQuery paragraph.</p> 
+ 
+    <button id="hide">Hide</button> 
+    <button id="show">Show</button> 
+    <button id="toggle">Toggle</button> 
+ 
+</body> 
+</html>

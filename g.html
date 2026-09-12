@@ -1,0 +1,48 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <title>Get and Set Values</title> 
+ 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> 
+ 
+    <script> 
+        $(document).ready(function() { 
+ 
+            $("#get").click(function() { 
+ 
+                let name = $("#name").val(); 
+ 
+                $("#result").text(name); 
+ 
+            }); 
+ 
+            $("#set").click(function() { 
+ 
+                $("#name").val("Ammu"); 
+ 
+            }); 
+ 
+        }); 
+    </script> 
+</head> 
+ 
+<body> 
+ 
+    <input type="text" id="name" value="Rushda"> 
+ 
+    <br><br> 
+ 
+    <button id="get">Get Value</button> 
+    <button id="set">Set Value</button> 
+ 
+    <p id="result"></p> 
+ 
+</body> 
+</html> 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

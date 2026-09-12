@@ -1,0 +1,33 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <title>Sliding Effects</title> 
+ 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> 
+ 
+    <script> 
+        $(document).ready(function() { 
+ 
+            $("#down").click(function() { 
+                $("#box").slideDown(); 
+            }); 
+ 
+            $("#up").click(function() { 
+                $("#box").slideUp(); 
+            }); 
+ 
+        }); 
+    </script> 
+</head> 
+ 
+<body> 
+ 
+    <button id="down">Slide Down</button> 
+    <button id="up">Slide Up</button> 
+ 
+    <div id="box"> 
+        Welcome to jQuery Effects 
+    </div> 
+ 
+</body> 
+</html>

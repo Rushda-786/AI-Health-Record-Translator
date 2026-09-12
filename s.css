@@ -1,0 +1,44 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <title>CSS Class Manipulation</title> 
+ 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> 
+ 
+    <style> 
+        .highlight { 
+            background: yellow; 
+            color: red; 
+            font-size: 25px; 
+        } 
+    </style> 
+ 
+    <script> 
+        $(document).ready(function() { 
+ 
+            $("#add").click(function() { 
+                $("#text").addClass("highlight"); 
+            }); 
+ 
+            $("#remove").click(function() { 
+                $("#text").removeClass("highlight"); 
+            }); 
+ 
+            $("#toggle").click(function() { 
+                $("#text").toggleClass("highlight"); 
+            }); 
+ 
+        }); 
+    </script> 
+</head> 
+ 
+<body> 
+ 
+    <p id="text">This is a paragraph.</p> 
+ 
+    <button id="add">Add Class</button> 
+    <button id="remove">Remove Class</button> 
+    <button id="toggle">Toggle Class</button> 
+ 
+</body> 
+</html>
