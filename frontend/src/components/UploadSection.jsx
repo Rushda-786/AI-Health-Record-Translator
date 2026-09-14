@@ -50,7 +50,7 @@ function UploadSection() {
       }, 2700);
 
       const response = await fetch(
-        "http://127.0.0.1:5000/upload",
+        "https://ai-health-record-translator-backend.onrender.com/upload",
         {
           method: "POST",
           body: formData,
