@@ -7,19 +7,9 @@ function UploadSection() {
   const [findings, setFindings] = useState([]);
   const [labResults, setLabResults] = useState([]);
   const [explanations, setExplanations] = useState([]);
-
-  const [suggestions, setSuggestions] = useState([]);
-  const [abnormalValues, setAbnormalValues] = useState([]);
-  const [overallSummary, setOverallSummary] = useState("");
-  const [generalAdvice, setGeneralAdvice] = useState([]);
-  const [doctorAdvice, setDoctorAdvice] = useState([]);
-
   const [loading, setLoading] = useState(false);
   const [analysisStep, setAnalysisStep] = useState("");
 
-  // ================================
-  // FILE SELECTION
-  // ================================
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
 
@@ -30,32 +20,9 @@ function UploadSection() {
       setFindings([]);
       setLabResults([]);
       setExplanations([]);
-      setSuggestions([]);
-      setAbnormalValues([]);
-      setOverallSummary("");
-      setGeneralAdvice([]);
-      setDoctorAdvice([]);
     }
   };
 
-  // ================================
-  // CONVERT VALUE TO ARRAY SAFELY
-  // ================================
-  const makeArray = (value) => {
-    if (Array.isArray(value)) {
-      return value;
-    }
-
-    if (value === null || value === undefined || value === "") {
-      return [];
-    }
-
-    return [value];
-  };
-
-  // ================================
-  // ANALYZE REPORT
-  // ================================
   const analyzeReport = async () => {
     if (!file) {
       setMessage("Please select a medical report first.");
@@ -93,46 +60,29 @@ function UploadSection() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.error || "Unable to analyze report."
-        );
+        throw new Error(data.error || "Unable to analyze report.");
       }
 
-      // Existing backend data
       setReportText(data.text || "");
-      setFindings(makeArray(data.findings));
-      setLabResults(makeArray(data.lab_results));
-      setExplanations(makeArray(data.explanations));
-
-      // New backend data
-      setSuggestions(makeArray(data.suggestions));
-      setAbnormalValues(makeArray(data.abnormal_values));
-      setOverallSummary(data.overall_summary || "");
-      setGeneralAdvice(makeArray(data.general_advice));
-      setDoctorAdvice(makeArray(data.doctor_advice));
+      setFindings(data.findings || []);
+      setLabResults(data.lab_results || []);
+      setExplanations(data.explanations || []);
 
       setAnalysisStep("");
-      setMessage(
-        "Medical report analyzed successfully."
-      );
+      setMessage("Medical report analyzed successfully.");
     } catch (error) {
       console.error(error);
-
       setMessage(
         "Error analyzing report. Please make sure the Flask backend is running."
       );
-
       setAnalysisStep("");
     } finally {
       setTimeout(() => {
         setLoading(false);
-      }, 1000);
+      }, 3000);
     }
   };
 
-  // ================================
-  // DOWNLOAD ANALYSIS
-  // ================================
   const downloadAnalysis = () => {
     let content = "AI HEALTH RECORD TRANSLATOR\n";
     content += "====================================\n\n";
@@ -140,12 +90,9 @@ function UploadSection() {
     content += "EXTRACTED MEDICAL REPORT\n";
     content += "------------------------------------\n";
     content += reportText || "No report text available.";
+    content += "\n\n";
 
-    content += "\n\nOVERALL SUMMARY\n";
-    content += "------------------------------------\n";
-    content += overallSummary || "No summary available.";
-
-    content += "\n\nDETECTED FINDINGS\n";
+    content += "DETECTED FINDINGS\n";
     content += "------------------------------------\n";
 
     if (findings.length > 0) {
@@ -156,63 +103,13 @@ function UploadSection() {
       content += "No major findings detected.\n";
     }
 
-    content += "\nABNORMAL VALUES\n";
-    content += "------------------------------------\n";
-
-    if (abnormalValues.length > 0) {
-      abnormalValues.forEach((item, index) => {
-        if (typeof item === "object") {
-          content += `${index + 1}. ${
-            item.name ||
-            item.test ||
-            "Laboratory value"
-          }: ${item.value || ""} ${
-            item.unit || ""
-          }\n`;
-
-          if (item.status) {
-            content += `Status: ${item.status}\n`;
-          }
-
-          if (item.explanation) {
-            content += `Explanation: ${item.explanation}\n`;
-          }
-
-          content += "\n";
-        } else {
-          content += `${index + 1}. ${item}\n`;
-        }
-      });
-    } else {
-      content += "No abnormal values detected.\n";
-    }
-
     content += "\nLABORATORY RESULTS\n";
     content += "------------------------------------\n";
 
     if (labResults.length > 0) {
       labResults.forEach((lab) => {
-        content += `${lab.name || lab.test}: ${
-          lab.value || ""
-        } ${lab.unit || ""}\n`;
-
-        content += `Reference Range: ${
-          lab.reference || "Not available"
-        }\n`;
-
-        if (lab.status) {
-          content += `Status: ${lab.status}\n`;
-        }
-
-        if (lab.explanation) {
-          content += `Explanation: ${lab.explanation}\n`;
-        }
-
-        if (lab.suggestion) {
-          content += `Suggestion: ${lab.suggestion}\n`;
-        }
-
-        content += "\n";
+        content += `${lab.name}: ${lab.value} ${lab.unit || ""}\n`;
+        content += `Reference Range: ${lab.reference || "Not available"}\n\n`;
       });
     } else {
       content += "No laboratory results detected.\n";
@@ -229,40 +126,6 @@ function UploadSection() {
       content += "No explanation available.\n";
     }
 
-    content += "\nSUGGESTIONS\n";
-    content += "------------------------------------\n";
-
-    if (suggestions.length > 0) {
-      suggestions.forEach((item, index) => {
-        content += `${index + 1}. ${item}\n`;
-      });
-    } else {
-      content += "No specific suggestions available.\n";
-    }
-
-    content += "\nGENERAL ADVICE\n";
-    content += "------------------------------------\n";
-
-    if (generalAdvice.length > 0) {
-      generalAdvice.forEach((item, index) => {
-        content += `${index + 1}. ${item}\n`;
-      });
-    } else {
-      content += "No general advice available.\n";
-    }
-
-    content += "\nDOCTOR ADVICE\n";
-    content += "------------------------------------\n";
-
-    if (doctorAdvice.length > 0) {
-      doctorAdvice.forEach((item, index) => {
-        content += `${index + 1}. ${item}\n`;
-      });
-    } else {
-      content +=
-        "Consult a qualified healthcare professional for interpretation.\n";
-    }
-
     content +=
       "\n\nDISCLAIMER: This tool is for educational/demo purposes only and does not replace professional medical advice.";
 
@@ -271,7 +134,6 @@ function UploadSection() {
     });
 
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
 
     link.href = url;
@@ -279,18 +141,14 @@ function UploadSection() {
 
     document.body.appendChild(link);
     link.click();
-
     document.body.removeChild(link);
 
     URL.revokeObjectURL(url);
   };
 
-  // ================================
-  // CREATE LAB CHART DATA
-  // ================================
   const createChartData = (lab) => {
     const numericValue = parseFloat(
-      String(lab.value || "").replace(/[^\d.-]/g, "")
+      String(lab.value).replace(/[^\d.-]/g, "")
     );
 
     if (isNaN(numericValue)) {
@@ -311,10 +169,6 @@ function UploadSection() {
     const normalMax = parseFloat(rangeMatch[2]);
 
     const range = normalMax - normalMin;
-
-    if (range <= 0) {
-      return null;
-    }
 
     let chartMin = Math.min(
       normalMin - range * 0.5,
@@ -363,60 +217,11 @@ function UploadSection() {
     };
   };
 
-  // ================================
-  // GET LAB STATUS
-  // ================================
-  const getLabStatus = (lab) => {
-    if (lab.status) {
-      return lab.status;
-    }
-
-    const chart = createChartData(lab);
-
-    if (!chart) {
-      return "Unknown";
-    }
-
-    if (chart.numericValue < chart.normalMin) {
-      return "Low";
-    }
-
-    if (chart.numericValue > chart.normalMax) {
-      return "High";
-    }
-
-    return "Normal";
-  };
-
-  // ================================
-  // STATUS BADGE
-  // ================================
-  const getStatusClass = (status) => {
-    const value = String(status).toLowerCase();
-
-    if (value.includes("normal")) {
-      return "bg-success";
-    }
-
-    if (
-      value.includes("high") ||
-      value.includes("low") ||
-      value.includes("abnormal")
-    ) {
-      return "bg-danger";
-    }
-
-    return "bg-secondary";
-  };
-
   return (
     <section
       id="upload"
       className="container py-5"
     >
-
-      {/* UPLOAD SECTION */}
-
       <div className="text-center mb-4">
         <h2 className="fw-bold">
           Upload Your Medical Report
@@ -429,9 +234,7 @@ function UploadSection() {
       </div>
 
       <div className="card shadow-lg border-0 p-4">
-
         <div className="mb-3">
-
           <label className="form-label fw-bold">
             Select Medical Report
           </label>
@@ -442,13 +245,11 @@ function UploadSection() {
             accept=".pdf"
             onChange={handleFileChange}
           />
-
         </div>
 
         {file && (
           <div className="alert alert-info">
-            Selected file:{" "}
-            <strong>{file.name}</strong>
+            Selected file: <strong>{file.name}</strong>
           </div>
         )}
 
@@ -457,7 +258,6 @@ function UploadSection() {
           onClick={analyzeReport}
           disabled={loading}
         >
-
           {loading ? (
             <>
               <span className="loading-spinner"></span>
@@ -466,18 +266,15 @@ function UploadSection() {
           ) : (
             "Analyze Report"
           )}
-
         </button>
 
         {loading && (
           <div className="text-center mt-4">
-
             <div className="spinner-border text-success mb-3"></div>
 
             <p className="fw-semibold">
               {analysisStep}
             </p>
-
           </div>
         )}
 
@@ -486,30 +283,11 @@ function UploadSection() {
             {message}
           </div>
         )}
-
       </div>
 
-      {/* AI SUMMARY */}
-
-      {overallSummary && (
-        <div className="card shadow-sm border-0 mt-4 p-4">
-
-          <h4 className="fw-bold mb-3">
-            🧠 AI Health Summary
-          </h4>
-
-          <div className="alert alert-info mb-0">
-            {overallSummary}
-          </div>
-
-        </div>
-      )}
-
-      {/* EXTRACTED REPORT */}
-
+      {/* Extracted Report */}
       {reportText && (
         <div className="card shadow-sm border-0 mt-4 p-4">
-
           <h4 className="fw-bold mb-3">
             📄 Extracted Medical Report
           </h4>
@@ -524,22 +302,18 @@ function UploadSection() {
           >
             {reportText}
           </div>
-
         </div>
       )}
 
-      {/* FINDINGS */}
-
+      {/* Findings */}
       {reportText && (
         <div className="card shadow-sm border-0 mt-4 p-4">
-
           <h4 className="fw-bold mb-3">
             🔍 Detected Findings
           </h4>
 
           {findings.length > 0 ? (
             <ul className="list-group">
-
               {findings.map((finding, index) => (
                 <li
                   key={index}
@@ -548,263 +322,113 @@ function UploadSection() {
                   ⚠️ {finding}
                 </li>
               ))}
-
             </ul>
           ) : (
             <p className="text-muted">
               No major findings detected.
             </p>
           )}
-
         </div>
       )}
 
-      {/* ABNORMAL VALUES */}
-
-      {abnormalValues.length > 0 && (
-        <div className="card shadow-sm border-0 mt-4 p-4">
-
-          <h4 className="fw-bold mb-3">
-            ⚠️ Abnormal Values
-          </h4>
-
-          <div className="row">
-
-            {abnormalValues.map((item, index) => {
-
-              if (typeof item === "object") {
-
-                return (
-                  <div
-                    className="col-md-6 mb-3"
-                    key={index}
-                  >
-
-                    <div className="alert alert-warning h-100">
-
-                      <h6 className="fw-bold">
-                        {item.name ||
-                          item.test ||
-                          "Laboratory Value"}
-                      </h6>
-
-                      <p className="mb-1">
-                        Value:{" "}
-                        <strong>
-                          {item.value || ""}
-                          {" "}
-                          {item.unit || ""}
-                        </strong>
-                      </p>
-
-                      {item.status && (
-                        <p className="mb-1">
-                          Status:{" "}
-                          <strong>
-                            {item.status}
-                          </strong>
-                        </p>
-                      )}
-
-                      {item.explanation && (
-                        <p className="mb-0">
-                          {item.explanation}
-                        </p>
-                      )}
-
-                    </div>
-
-                  </div>
-                );
-              }
-
-              return (
-                <div
-                  className="col-md-6 mb-3"
-                  key={index}
-                >
-
-                  <div className="alert alert-warning">
-                    ⚠️ {item}
-                  </div>
-
-                </div>
-              );
-            })}
-
-          </div>
-
-        </div>
-      )}
-
-      {/* LABORATORY RESULTS */}
-
+      {/* Laboratory Results */}
       {labResults.length > 0 && (
         <div className="card shadow-sm border-0 mt-4 p-4">
-
           <h4 className="fw-bold mb-4">
             🧪 Laboratory Results
           </h4>
 
           <div className="table-responsive">
-
             <table className="table table-bordered table-hover">
-
               <thead className="table-success">
-
                 <tr>
                   <th>Test</th>
                   <th>Patient Value</th>
                   <th>Reference Range</th>
                   <th>Status</th>
                 </tr>
-
               </thead>
 
               <tbody>
-
                 {labResults.map((lab, index) => {
+                  const chart = createChartData(lab);
 
-                  const status = getLabStatus(lab);
+                  let status = "Normal";
+
+                  if (chart) {
+                    if (chart.numericValue < chart.normalMin) {
+                      status = "Low";
+                    } else if (
+                      chart.numericValue > chart.normalMax
+                    ) {
+                      status = "High";
+                    }
+                  }
 
                   return (
                     <tr key={index}>
-
-                      <td>
-                        {lab.name || lab.test}
-                      </td>
+                      <td>{lab.name}</td>
 
                       <td>
                         <strong>
-                          {lab.value}{" "}
-                          {lab.unit || ""}
+                          {lab.value} {lab.unit || ""}
                         </strong>
                       </td>
 
                       <td>
-                        {lab.reference ||
-                          "Not available"}
+                        {lab.reference || "Not available"}
                       </td>
 
                       <td>
-
                         <span
-                          className={`badge ${getStatusClass(
-                            status
-                          )}`}
+                          className={`badge ${
+                            status === "Normal"
+                              ? "bg-success"
+                              : "bg-danger"
+                          }`}
                         >
                           {status}
                         </span>
-
                       </td>
-
                     </tr>
                   );
                 })}
-
               </tbody>
-
             </table>
-
           </div>
-
         </div>
       )}
 
-      {/* LAB EXPLANATIONS */}
-
+      {/* Lab Charts */}
       {labResults.length > 0 && (
         <div className="card shadow-sm border-0 mt-4 p-4">
-
-          <h4 className="fw-bold mb-4">
-            💬 Laboratory Value Explanation
-          </h4>
-
-          <div className="row">
-
-            {labResults.map((lab, index) => (
-
-              <div
-                className="col-md-6 mb-3"
-                key={index}
-              >
-
-                <div className="border rounded p-3 h-100">
-
-                  <h6 className="fw-bold">
-                    {lab.name || lab.test}
-                  </h6>
-
-                  {lab.explanation ? (
-                    <p className="text-muted mb-2">
-                      {lab.explanation}
-                    </p>
-                  ) : (
-                    <p className="text-muted">
-                      No explanation available.
-                    </p>
-                  )}
-
-                  {lab.suggestion && (
-                    <div className="alert alert-light mb-0">
-                      💡{" "}
-                      <strong>
-                        Suggestion:
-                      </strong>{" "}
-                      {lab.suggestion}
-                    </div>
-                  )}
-
-                </div>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </div>
-      )}
-
-      {/* LAB CHARTS */}
-
-      {labResults.length > 0 && (
-        <div className="card shadow-sm border-0 mt-4 p-4">
-
           <h4 className="fw-bold mb-4">
             📊 Laboratory Result Charts
           </h4>
 
           {labResults.map((lab, index) => {
-
             const chart = createChartData(lab);
 
             if (!chart) {
               return null;
             }
 
-            const status = getLabStatus(lab);
-
             return (
               <div
                 key={index}
                 className="mb-5"
               >
-
                 <div className="d-flex justify-content-between mb-2">
-
                   <strong>
-                    {lab.name || lab.test}
+                    {lab.name}
                   </strong>
 
                   <span>
                     Patient Value:{" "}
                     <strong>
-                      {lab.value}{" "}
-                      {lab.unit || ""}
+                      {lab.value} {lab.unit || ""}
                     </strong>
                   </span>
-
                 </div>
 
                 <div
@@ -814,9 +438,7 @@ function UploadSection() {
                     paddingTop: "15px",
                   }}
                 >
-
                   {/* Main Track */}
-
                   <div
                     style={{
                       position: "absolute",
@@ -830,7 +452,6 @@ function UploadSection() {
                   ></div>
 
                   {/* Normal Range */}
-
                   <div
                     style={{
                       position: "absolute",
@@ -844,7 +465,6 @@ function UploadSection() {
                   ></div>
 
                   {/* Patient Marker */}
-
                   <div
                     style={{
                       position: "absolute",
@@ -852,24 +472,20 @@ function UploadSection() {
                       top: "10px",
                       width: "4px",
                       height: "48px",
-                      background:
-                        chart.isNormal
-                          ? "#198754"
-                          : "#dc3545",
-                      transform:
-                        "translateX(-2px)",
+                      background: chart.isNormal
+                        ? "#198754"
+                        : "#dc3545",
+                      transform: "translateX(-2px)",
                     }}
                   ></div>
 
                   {/* Patient Value Label */}
-
                   <div
                     style={{
                       position: "absolute",
                       left: `${chart.markerPosition}%`,
                       top: "-12px",
-                      transform:
-                        "translateX(-50%)",
+                      transform: "translateX(-50%)",
                       fontWeight: "bold",
                       fontSize: "13px",
                       whiteSpace: "nowrap",
@@ -877,11 +493,9 @@ function UploadSection() {
                   >
                     {lab.value}
                   </div>
-
                 </div>
 
                 <div className="d-flex justify-content-between small text-muted">
-
                   <span>
                     {chart.chartMin.toFixed(1)}
                   </span>
@@ -894,11 +508,9 @@ function UploadSection() {
                   <span>
                     {chart.chartMax.toFixed(1)}
                   </span>
-
                 </div>
 
                 <div className="mt-2">
-
                   <span className="badge bg-success me-2">
                     Normal Range
                   </span>
@@ -910,29 +522,23 @@ function UploadSection() {
                         : "bg-danger"
                     }`}
                   >
-                    Patient Value: {status}
+                    Patient Value
                   </span>
-
                 </div>
-
               </div>
             );
           })}
-
         </div>
       )}
 
-      {/* SIMPLE EXPLANATION */}
-
+      {/* Simple Explanation */}
       {explanations.length > 0 && (
         <div className="card shadow-sm border-0 mt-4 p-4">
-
           <h4 className="fw-bold mb-3">
             💡 Simple Explanation
           </h4>
 
           <ul className="list-group">
-
             {explanations.map((item, index) => (
               <li
                 key={index}
@@ -941,98 +547,18 @@ function UploadSection() {
                 {item}
               </li>
             ))}
-
           </ul>
-
         </div>
       )}
 
-      {/* AI SUGGESTIONS */}
-
-      {suggestions.length > 0 && (
-        <div className="card shadow-sm border-0 mt-4 p-4">
-
-          <h4 className="fw-bold mb-3">
-            💡 AI Suggestions
-          </h4>
-
-          <ul className="list-group">
-
-            {suggestions.map((item, index) => (
-              <li
-                key={index}
-                className="list-group-item"
-              >
-                ✅ {item}
-              </li>
-            ))}
-
-          </ul>
-
-        </div>
-      )}
-
-      {/* GENERAL ADVICE */}
-
-      {generalAdvice.length > 0 && (
-        <div className="card shadow-sm border-0 mt-4 p-4">
-
-          <h4 className="fw-bold mb-3">
-            🌿 General Health Advice
-          </h4>
-
-          <ul>
-
-            {generalAdvice.map((item, index) => (
-              <li
-                key={index}
-                className="mb-2"
-              >
-                {item}
-              </li>
-            ))}
-
-          </ul>
-
-        </div>
-      )}
-
-      {/* DOCTOR ADVICE */}
-
-      {doctorAdvice.length > 0 && (
-        <div className="card shadow-sm border-0 mt-4 p-4">
-
-          <h4 className="fw-bold mb-3">
-            👨‍⚕️ When to Consult a Doctor
-          </h4>
-
-          <ul>
-
-            {doctorAdvice.map((item, index) => (
-              <li
-                key={index}
-                className="mb-2"
-              >
-                {item}
-              </li>
-            ))}
-
-          </ul>
-
-        </div>
-      )}
-
-      {/* QUESTIONS FOR DOCTOR */}
-
+      {/* Doctor Questions */}
       {reportText && (
         <div className="card shadow-sm border-0 mt-4 p-4">
-
           <h4 className="fw-bold mb-3">
-            🩺 Questions to Ask Your Doctor
+            👨‍⚕️ Questions to Ask Your Doctor
           </h4>
 
           <ul>
-
             <li>
               What do these abnormal values mean?
             </li>
@@ -1042,41 +568,32 @@ function UploadSection() {
             </li>
 
             <li>
-              Should I discuss any diet or
-              lifestyle changes with you?
+              Should I change my diet or lifestyle?
             </li>
 
             <li>
               Do I need any treatment or medication?
             </li>
-
           </ul>
-
         </div>
       )}
 
-      {/* DOWNLOAD */}
-
+      {/* Download */}
       {reportText && (
         <div className="text-center mt-4 mb-5">
-
           <button
             className="btn btn-primary px-4"
             onClick={downloadAnalysis}
           >
             📥 Download Analysis
           </button>
-
         </div>
       )}
-
-      {/* DISCLAIMER */}
 
       <div className="text-center text-muted small mt-4">
         ⚕️ This tool is for educational/demo purposes only.
         It does not replace professional medical advice.
       </div>
-
     </section>
   );
 }
